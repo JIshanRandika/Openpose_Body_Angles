@@ -52,6 +52,8 @@ class PoseEstimator():
         """applies pose estimation on frame, gets the distances between points"""
         
         RArm = 0
+        RKnee = 0
+        LKnee = 0
         # for the key points that do not come in pairs
         RShoulder_pos = None
         RWrist_pos = None
@@ -340,10 +342,10 @@ class PoseEstimator():
                 theta = None
 
             self.KEY_ANGLES["RLeg"].append(theta)
-
             # display the angle at the center joint. Use self.BODY_PARTS to find joint indices
 
             if(theta is not None):
+                RKnee = theta
                 cv.putText(frame,"{:.1f}".format(theta),self.POINTS[9],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
         if(LHip_pos is not None and LAnkle_pos is not None):
@@ -365,6 +367,7 @@ class PoseEstimator():
             # display the angle at the center joint. Use self.BODY_PARTS to find joint indices
 
             if(theta is not None):
+                LKnee = theta
                 cv.putText(frame,"{:.1f}".format(theta),self.POINTS[12],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
 
@@ -373,7 +376,7 @@ class PoseEstimator():
 
         cv.putText(frame, '%.2fms' % (t / freq), (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, self.TEXT_COLOR)
 
-        return frame, RArm
+        return frame, RArm, LKnee, RKnee
 
 
 
