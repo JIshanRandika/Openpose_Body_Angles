@@ -27,5 +27,5 @@ class Main():
 
 if __name__ == "__main__":
     app = Main()
-    app.video_estimation("1.mp4")
+    app.video_estimation("7608-3_70626.avi")
 

@@ -48,12 +48,14 @@ class PoseEstimator():
     def rad_to_deg(self,rad):
         return rad * (180/math.pi)
 
-    def get_pose_key_angles(self, frame, wantBlank = False):
+    def get_pose_key_angles(self, frame,frame_number, wantBlank = False):
         """applies pose estimation on frame, gets the distances between points"""
         
         RArm = 0
         RKnee = 0
         LKnee = 0
+        RElbow = 0
+        LElbow = 0
         # for the key points that do not come in pairs
         RShoulder_pos = None
         RWrist_pos = None
@@ -74,7 +76,11 @@ class PoseEstimator():
         LKnee_pos = None
         LAnkle_pos = None
 
-
+        output_dir = "frames"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
+        
         frame_h,frame_w = frame.shape[0:2]
             
         self.NET.setInput(cv.dnn.blobFromImage(frame, 1.0, (self.IN_WIDTH, self.IN_HEIGHT), (127.5, 127.5, 127.5), swapRB=True, crop=False))
@@ -262,6 +268,7 @@ class PoseEstimator():
             # display the angle at the center joint. Use self.BODY_PARTS to find joint indices
             
             if(theta is not None):
+                RElbow = theta
                 cv.putText(frame,"{:.1f}".format(theta),self.POINTS[3],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
         
         if(LShoulder_pos is not None and LWrist_pos is not None):
@@ -283,6 +290,7 @@ class PoseEstimator():
             # display the angle at the center joint. Use self.BODY_PARTS to find joint indices
 
             if(theta is not None):
+                LElbow = theta
                 cv.putText(frame,"{:.1f}".format(theta),self.POINTS[6],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
         if(Neck_pos is not None and LElbow_pos is not None):
@@ -323,7 +331,7 @@ class PoseEstimator():
             # display the angle at the center joint. Use self.BODY_PARTS to find joint indices
 
             if(theta is not None):
-                RArm = theta
+                # RArm = theta
                 # angle_values.append({'Time': time.time() - start_time, 'RArm': theta})
                 cv.putText(frame,"{:.1f}".format(theta),self.POINTS[2],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
@@ -371,12 +379,41 @@ class PoseEstimator():
                 cv.putText(frame,"{:.1f}".format(theta),self.POINTS[12],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
 
+
+        # ===============================================================
+        # if(LHip_pos is not None and LAnkle_pos is not None):
+
+        #     c_2 = (LHip_pos[0] - LAnkle_pos[0])**2 + (LHip_pos[1] - LAnkle_pos[1])**2
+
+        #     a_2 = self.KEY_DISTANCES["LLeg"]["LHip-LKnee"]
+        #     b_2 = self.KEY_DISTANCES["LLeg"]["LKnee-LAnkle"]
+
+        #     # because degrees are easily to visualize for me:
+        #     try:
+        #         theta = self.rad_to_deg(math.acos((a_2 + b_2 - c_2)/(2*math.sqrt(a_2*b_2))))
+
+        #     except ZeroDivisionError:
+        #         theta = None
+
+        #     self.KEY_ANGLES["LLeg"].append(theta)
+
+        #     # display the angle at the center joint. Use self.BODY_PARTS to find joint indices
+
+        #     if(theta is not None):
+        #         LKnee = theta
+        #         cv.putText(frame,"{:.1f}".format(theta),self.POINTS[12],cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
+        # ===============================================================
+
+
         t, _ = self.NET.getPerfProfile()
         freq = cv.getTickFrequency() / 1000
 
         cv.putText(frame, '%.2fms' % (t / freq), (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, self.TEXT_COLOR)
-
-        return frame, RArm, LKnee, RKnee
+        # Save the image with frame number
+        frame_filename = os.path.join(output_dir, f"frame_{frame_number}.jpg")
+        cv.imwrite(frame_filename, frame)
+        
+        return frame, RArm, LKnee, RKnee, LElbow, RElbow
 
 
 
